@@ -1,0 +1,37 @@
+# Wheel 0.25+ needed to install certain packages on CPython 3.5+
+# like Pillow and psycopg2
+# See http://bitly.com/wheel-building-fails-CPython-35
+# Verified bug on Python 3.5.1
+wheel==0.30.0
+
+
+# Bleeding edge Django
+django==1.10.8 # pyup: >=1.10,<1.11
+
+# Configuration
+django-environ==0.4.4
+whitenoise==3.3.1
+
+# Models
+django-model-utils==3.0.0
+
+# Python-PostgreSQL Database Adapter
+psycopg2==2.7.3.2
+
+# Python Mongo Database Adapter
+pymongo
+
+# Time zones support
+pytz==2017.3
+
+
+# Graphene
+graphene
+graphene-django
+
+
+# CORS
+django-cors-headers
+
+# Agnoris Internal
+git+https://04252e22d18d0d9d977bf110b44b1962ba688222:x-oauth-basic@github.com/Shein/agnoris_storage.git
