@@ -64,10 +64,10 @@ class Query(object):
         months = SalesDatabase(venue_id).get_revenue_by_month()
         return results_to_dateaccumulated_array(months)
 
-    def resolve_snapshot_daily(self, args, venue_id):
-        snapshot = SalesDatabase(venue_id).get_snapshot_by_day(args)
+    def resolve_snapshot_daily(self, args, venue_id, start_date=None, end_date=None, limit=None):
+        snapshot = SalesDatabase(venue_id).get_snapshot_by_day()
         return results_to_dateaccumulated_array(snapshot)
 
-    def resolve_snapshot_monthly(self, args, venue_id):
-        snapshot = SalesDatabase(venue_id).get_snapshot_by_month(args)
+    def resolve_snapshot_monthly(self, args, venue_id, start_date=None, end_date=None, limit=None):
+        snapshot = SalesDatabase(venue_id).get_snapshot_by_month()
         return results_to_dateaccumulated_array(snapshot)
