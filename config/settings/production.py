@@ -94,3 +94,5 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 
 # Your production stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
+
+CORS_ORIGIN_ALLOW_ALL = True
