@@ -56,7 +56,7 @@ arguments = {
 }
 
 
-class Query(graphene.AbstractType):
+class Query(object):
     items_accumulated = graphene.List(ItemsAccumulated, **arguments)
     items_per_day = graphene.List(ItemsPerDay, **arguments)
 

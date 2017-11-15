@@ -30,19 +30,19 @@ arguments = {
 }
 
 
-class Query(graphene.AbstractType):
+class Query(object):
     boh_shifts = graphene.List(WeekAccumulated, **arguments)
     foh_shifts = graphene.List(WeekAccumulated, **arguments)
     all_shifts = graphene.List(WeekAccumulated, **arguments)
 
-    def resolve_boh_shifts(self,args, venue_id):
+    def resolve_boh_shifts(self, args, venue_id):
         shifts = LaborDatabase(venue_id).get_shift_report_boh()
         return results_to_dateaccumulated_array(shifts)
 
-    def resolve_foh_shifts(self,args, venue_id):
+    def resolve_foh_shifts(self, args, venue_id):
         shifts = LaborDatabase(venue_id).get_shift_report_foh()
         return results_to_dateaccumulated_array(shifts)
 
-    def resolve_all_shifts(self,args, venue_id):
+    def resolve_all_shifts(self, args, venue_id):
         shifts = LaborDatabase(venue_id).get_shift_report()
         return results_to_dateaccumulated_array(shifts)

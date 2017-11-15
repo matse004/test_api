@@ -65,7 +65,7 @@ arguments = {
 }
 
 
-class Query(graphene.AbstractType):
+class Query(object):
     reservations = graphene.List(Reservation, **arguments)
     guests = graphene.List(Guest)
 

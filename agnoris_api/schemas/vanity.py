@@ -35,7 +35,7 @@ arguments = {
 }
 
 
-class Query(graphene.AbstractType):
+class Query(object):
     cover_by_day = graphene.List(DateAccumulated, **arguments)
     cover_by_week = graphene.List(DateAccumulated, **arguments)
     revenue_by_day = graphene.List(DateAccumulated, **arguments)
