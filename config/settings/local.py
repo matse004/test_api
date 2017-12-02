@@ -46,15 +46,3 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 # Your local stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
-
-# CORS CONFIGURATION
-
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8000',
-    'agnoris-portal.herokuapp.com',
-)
-CORS_ALLOW_METHODS = (
-    'GET',
-    'OPTIONS',
-)
