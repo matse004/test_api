@@ -234,7 +234,9 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'localhost:8000',
     'agnoris-portal.herokuapp.com',
-    'portal.agnoris.com'
+    'portal.agnoris.com',
+    'www.agnoris.com',
+    'agnoris.com'
 )
 CORS_ALLOW_METHODS = (
     'GET',
