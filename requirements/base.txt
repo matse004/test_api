@@ -35,3 +35,8 @@ django-cors-headers
 
 # Agnoris Internal
 git+https://04252e22d18d0d9d977bf110b44b1962ba688222:x-oauth-basic@github.com/Shein/agnoris_storage.git
+
+
+# temp
+pandas
+sqlalchemy
