@@ -46,6 +46,7 @@ class SnapshotCardRevenue(graphene.ObjectType):
     same_days_sales = graphene.List(PrevDateValues)
     month_to_date_sales = graphene.Float()
     week_to_date_sales = graphene.Float()
+    check_count_ma = graphene.Float()
 
 def rds_result_to_revenue_card(result):
 
@@ -71,6 +72,7 @@ def rds_result_to_revenue_card(result):
         , same_days_sales=last_same_days
         , month_to_date_sales = result.get("month_to_date_sales")
         , week_to_date_sales = result.get("week_to_date_sales")
+        , check_count_ma = result.get("check_count_ma")
     )
 
     return card
