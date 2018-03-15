@@ -85,6 +85,14 @@ def rds_results_to_card_array(results):
     return cards
 
 
+def rds_results_to_card_array(results):
+    cards = []
+    for result in results:
+        card = rds_result_to_revenue_card(result)
+        cards.append(card)
+    return cards
+
+
 def results_to_dateaccumulated_array(results):
     date_accumulated = []
     for result in results:
@@ -111,6 +119,7 @@ class Query(object):
     snapshot_daily = graphene.List(DateAccumulated, **arguments)
     snapshot_monthly = graphene.List(DateAccumulated, **arguments)
     revenue_this_week = graphene.List(DateAccumulated, **arguments)
+    daily_report = graphene.List(DateAccumulated, **arguments)
 
     cards_revenue = graphene.List(SnapshotCardRevenue, **arguments)
 
@@ -149,3 +158,7 @@ class Query(object):
     def resolve_cards_revenue(self, args, start_date, end_date, venue_id):
         cards = VenueReportingDb(venue_id).get_revenue_cards(start_date, end_date)
         return rds_results_to_card_array(cards)
+
+    def resolve_daily_report(self, args, start_date, end_date, venue_id):
+        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date)
+        return results_to_daily_report_array(reports)
