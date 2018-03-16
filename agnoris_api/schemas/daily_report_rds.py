@@ -19,6 +19,7 @@ class DailyReport(graphene.ObjectType):
     prev_days_avg = graphene.Field(DailyMetrics)
     same_days = graphene.List(DailyMetrics)
     WTD = graphene.Field(DailyMetrics)
+    party_size_grp = graphene.String()
 
 
 def results_to_daily_reports_array(results):
@@ -28,10 +29,10 @@ def results_to_daily_reports_array(results):
         reports.append(report)
     return reports
 
-def rds_to_daily_report(result):
-    prev_days = []
-    for day in json.loads(result.get("prev_days")):
-        prev_days.append(DailyMetrics(
+def load_list_of_daily_metrics(d):
+    days=[]
+    for day in d:
+        days.append(DailyMetrics(
             start_date=day.get("check_open_date")
             , end_date=day.get("check_open_date")
             , sales=day.get("items_total")
@@ -39,22 +40,41 @@ def rds_to_daily_report(result):
             , checks=day.get("checks_count")
             , avg_check=day.get("avg_check")
         ))
+    return days
 
-    avg = json.loads(result.get("prev_days_avg"))
-    prev_days_avg = DailyMetrics(
-        start_date=avg.get("start_date")
-        , end_date=avg.get("end_date")
-        , sales=avg.get("items_total")
-        , covers=avg.get("covers")
-        , checks=avg.get("checks_count")
-        , avg_check=avg.get("avg_check")
-    )
+def rds_to_daily_report(result):
+    report = DailyReport()
 
-    report = DailyReport(
-        date = result.get("ref_date")
-        , prev_days=prev_days
-        , prev_days_avg = prev_days_avg
-    )
+    # prev_days = None
+    if result.get("prev_days"):
+        prev_days = json.loads(result.get("prev_days"))
+        prev_days = load_list_of_daily_metrics(prev_days)
+        report.prev_days =prev_days
+
+    # prev_days_avg = None
+    if result.get("prev_days_avg"):
+        avg = json.loads(result.get("prev_days_avg"))
+        prev_days_avg = DailyMetrics(
+            start_date=avg.get("start_date")
+            , end_date=avg.get("end_date")
+            , sales=avg.get("items_total")
+            , covers=avg.get("covers")
+            , checks=avg.get("checks_count")
+            , avg_check=avg.get("avg_check")
+        )
+        report.prev_days_avg = prev_days_avg
+
+    # party_size_grp = None
+    if result.get("party_size_grp"):
+        party_siz_grp = result.get("party_size_grp")
+        report.party_size_grp = party_siz_grp
+
+    # report = DailyReport(
+    #     date = result.get("ref_date")
+    #     , prev_days=prev_days
+    #     , prev_days_avg = prev_days_avg
+    #     , party_size_grp = party_siz_grp
+    # )
 
     return report
 
@@ -73,9 +93,6 @@ class Query(object):
     # snapshots = JSONObjectString(**arguments)
 
     def resolve_daily_reports(self, args, start_date, end_date, venue_id):
-        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date)
+        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str='*')
         return results_to_daily_reports_array(reports)
 
-    # def resolve_snapshots(self, args, start_date, end_date, venue_id):
-    #     snapshots = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date)
-    #     return snapshots
