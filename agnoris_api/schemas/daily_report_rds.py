@@ -3,6 +3,7 @@ import json
 
 from storage.core.RDS.rds import VenueReportingDb, DailyRepFields
 from .scalars import JSONObjectString
+from tivan.analysis.analyze_rds import VenueSnapshots
 
 class DailyMetrics(graphene.ObjectType):
     start_date = graphene.String()
@@ -187,5 +188,9 @@ class Query(object):
 
     def resolve_daily_reports(self, args, start_date, end_date, venue_id):
         reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str='*')
+        if not reports:
+            # if no data in rds - try to calculate
+            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, )
+
         return results_to_daily_reports_array(reports)
 
