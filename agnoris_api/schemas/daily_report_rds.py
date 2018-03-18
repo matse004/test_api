@@ -5,6 +5,27 @@ from storage.core.RDS.rds import VenueReportingDb, DailyRepFields
 from .scalars import JSONObjectString
 from tivan.analysis.analyze_rds import VenueSnapshots
 
+class DailyReportMetrics(graphene.Enum):
+    ref_date = 'ref_date'
+    prev_days = 'prev_days'
+    prev_days_avg = 'prev_days_avg'
+    same_days = 'same_days'
+    same_days_avg = 'same_days_avg'
+    WTD = 'wtd'
+    MTD = 'mtd'
+    YTD = 'ytd'
+    party_size_grp = 'party_size_grp'
+    mp_rc_grp = 'mp_rc_grp'
+    rc_mp_grp = 'rc_mp_grp'
+    top_items = 'top_items'
+    top_items_by_party = 'top_items_by_party'
+    top_items_pop = 'top_items_pop'
+    labor_by_mp = 'labor_by_mp'
+    labor_by_emp = 'labor_by_emp repeats'
+    repeats = 'repeats'
+    all_fields = '*'
+
+
 class DailyMetrics(graphene.ObjectType):
     start_date = graphene.String()
     end_date = graphene.String()
@@ -34,7 +55,12 @@ class DailyReport(graphene.ObjectType):
     labor_by_emp = graphene.String()
     repeats = graphene.String()
 
-
+def results_to_prev_days_array(results):
+    reports = []
+    for result in results:
+        report = load_list_of_daily_metrics(result)
+        reports.append(report)
+    return reports
 
 def results_to_daily_reports_array(results):
     reports = []
@@ -177,20 +203,34 @@ arguments = {
     "limit": graphene.Int(),
     "start_date": graphene.String(),
     "end_date": graphene.String(),
-    "ref_date": graphene.String()
+    "ref_date": graphene.String(),
+    "fields_list": graphene.List(DailyReportMetrics),
+    "force_calc_flg": graphene.Boolean()
 }
 
 
 class Query(object):
     # daily_metrics = graphene.List(DailyMetrics, **arguments)
     daily_reports = graphene.List(DailyReport, **arguments)
+    # perv_days = graphene.List(DailyMetrics)
     # snapshots = JSONObjectString(**arguments)
 
-    def resolve_daily_reports(self, args, start_date, end_date, venue_id):
-        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str='*')
-        if not reports:
-            # if no data in rds - try to calculate
+    def resolve_daily_reports(self, args, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], force_calc_flg=False):
+        # filed_list = [field.values for field in fields_list_str]
+        fields_str = ', '.join(fields_list)
+        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str=fields_str)
+
+        # if no data in rds - try to calculate
+        # TODO: add field list
+        if not reports and force_calc_flg:
             reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, )
 
         return results_to_daily_reports_array(reports)
 
+    # def resolve_perv_days(self, args, start_date, end_date, venue_id):
+    #     reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str=DailyRepFields.prev_days)
+    #     # if not reports:
+    #     #     # if no data in rds - try to calculate
+    #     #     reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, )
+    #
+    #     return results_to_prev_days_array(reports)
