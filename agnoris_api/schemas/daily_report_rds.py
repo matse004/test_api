@@ -217,13 +217,13 @@ class Query(object):
 
     def resolve_daily_reports(self, args, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], force_calc_flg=False):
         # filed_list = [field.values for field in fields_list_str]
-        fields_str = ', '.join(fields_list)
-        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str=fields_str)
+        # fields_str = ', '.join(fields_list)
+        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list=fields_list)
 
         # if no data in rds - try to calculate
         # TODO: add field list
         if not reports and force_calc_flg:
-            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, )
+            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
 
         return results_to_daily_reports_array(reports)
 
