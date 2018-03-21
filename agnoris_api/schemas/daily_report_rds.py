@@ -192,9 +192,9 @@ def rds_to_daily_report(result):
         labor_by_emp = result.get(DailyRepFields.labor_by_emp)
         report.labor_by_emp = labor_by_emp
 
-    if result.get(DailyRepFields.labor_by_emp):
-        labor_by_emp = result.get(DailyRepFields.labor_by_emp)
-        report.labor_by_emp = labor_by_emp
+    if result.get(DailyRepFields.repeats):
+        repeats = result.get(DailyRepFields.repeats)
+        report.repeats = repeats
 
     return report
 
@@ -205,7 +205,8 @@ arguments = {
     "end_date": graphene.String(),
     "ref_date": graphene.String(),
     "fields_list": graphene.List(DailyReportMetrics),
-    "force_calc_flg": graphene.Boolean()
+    "force_calc_flg": graphene.Boolean(),
+    "calc_new_flg": graphene.Boolean()
 }
 
 
@@ -215,17 +216,24 @@ class Query(object):
     # perv_days = graphene.List(DailyMetrics)
     # snapshots = JSONObjectString(**arguments)
 
-    def resolve_daily_reports(self, args, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], force_calc_flg=False):
+    def resolve_daily_reports(self, args, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True, force_calc_flg=False):
         # filed_list = [field.values for field in fields_list_str]
         # fields_str = ', '.join(fields_list)
-        reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list=fields_list)
+        if force_calc_flg:
+            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
+        else:
+            reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list=fields_list)
 
         # if no data in rds - try to calculate
         # TODO: add field list
-        if not reports and force_calc_flg:
+        if not reports and calc_new_flg:
             reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
 
-        return results_to_daily_reports_array(reports)
+        if reports:
+            return results_to_daily_reports_array(reports)
+        else:
+            return None
+
 
     # def resolve_perv_days(self, args, start_date, end_date, venue_id):
     #     reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str=DailyRepFields.prev_days)
