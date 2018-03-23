@@ -1,8 +1,12 @@
 import graphene
 import json
+from psycopg2 import pool
+import logging
+import datetime
 
-from storage.core.RDS.rds import VenueReportingDb, DailyRepFields
-from .scalars import JSONObjectString
+from storage.core.RDS.rds import VenueReportingDb, DailyRepFields, RdsDB
+from storage.utilities import get_env_variable
+# from .scalars import JSONObjectString
 from tivan.analysis.analyze_rds import VenueSnapshots
 
 class DailyReportMetrics(graphene.Enum):
@@ -33,7 +37,6 @@ class DailyMetrics(graphene.ObjectType):
     checks = graphene.Int()
     sales = graphene.Float()
     avg_check = graphene.Float()
-
 
 class DailyReport(graphene.ObjectType):
     date = graphene.String()
@@ -210,19 +213,27 @@ arguments = {
 }
 
 
-class Query(object):
-    # daily_metrics = graphene.List(DailyMetrics, **arguments)
+class Query(graphene.ObjectType):
     daily_reports = graphene.List(DailyReport, **arguments)
-    # perv_days = graphene.List(DailyMetrics)
-    # snapshots = JSONObjectString(**arguments)
 
-    def resolve_daily_reports(self, args, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True, force_calc_flg=False):
+    def resolve_daily_reports(self, info, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True, force_calc_flg=False):
         # filed_list = [field.values for field in fields_list_str]
         # fields_str = ', '.join(fields_list)
+        conn=None
+        if info.context:
+            conn = info.context.get('rds_conn')
+
+        # force_calc_flg = args.get('force_calc_flg')
+        # venue_id = args.get('venue_id')
+        # start_date = args.get('start_date')
+        # end_date = args.get('end_date')
+        # fields_list = args.get('fields_list')
+        # calc_new_flg = args.get('calc_new_flg')
+
         if force_calc_flg:
             reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
         else:
-            reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list=fields_list)
+            reports = VenueReportingDb(venue_id, conn=conn).retrieve_report_data(start_date, end_date, fields_list=fields_list)
 
         # if no data in rds - try to calculate
         # TODO: add field list
@@ -234,11 +245,58 @@ class Query(object):
         else:
             return None
 
+schema = graphene.Schema(query=Query)
+query = """
+            query{
+                dailyReports(startDate: "14/03/2018", endDate: "14/03/2018", venueId: "8962a8ff-d314-487d-9403-1897372cbd07")
+                {
+                    date
+                }
+                }
+        """
+query1 = """
+            query{
+                dailyReports(startDate: "12/03/2018", endDate: "12/03/2018", venueId: "8962a8ff-d314-487d-9403-1897372cbd07")
+                {
+                    date
+                }
+                }
+        """
 
-    # def resolve_perv_days(self, args, start_date, end_date, venue_id):
-    #     reports = VenueReportingDb(venue_id).retrieve_report_data(start_date, end_date, fields_list_str=DailyRepFields.prev_days)
-    #     # if not reports:
-    #     #     # if no data in rds - try to calculate
-    #     #     reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, )
-    #
-    #     return results_to_prev_days_array(reports)
+
+class RdsPool():
+    def __init__(self):
+        connection_string = str(get_env_variable("RDS_DWH_CONNECTION_STRING", exception_on_failure=True))
+
+        try:
+            self.conn_pool = pool.ThreadedConnectionPool(minconn=15, maxconn=100, dsn=connection_string)
+        except Exception as ex:
+            # self.LOGGER.error("Can't create connection pool: {}".format(str(ex)))
+            print("Can't create connection pool")
+
+
+if __name__ == '__main__':
+    ts =  datetime.datetime.now()
+    rds = RdsPool()
+    te = datetime.datetime.now()
+    print("pooling: {}".format(te-ts))
+
+    ts =  datetime.datetime.now()
+    conn = rds.conn_pool.getconn()
+    result = schema.execute(query,  context_value={'rds_conn': conn})
+    # print(result.data)
+    rds.conn_pool.putconn(conn=conn)
+    te = datetime.datetime.now()
+    print("first query: {}".format(te-ts))
+
+    # ts = datetime.datetime.now()
+    # conn = rds.conn_pool.getconn()
+    # result = schema.execute(query1, context_value={'rds_conn':conn})
+    # # print(result.data)
+    # rds.conn_pool.putconn(conn=conn)
+    # te = datetime.datetime.now()
+    # print("second query: {}".format(te-ts))
+
+
+
+
