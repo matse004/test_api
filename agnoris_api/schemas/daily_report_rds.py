@@ -219,10 +219,13 @@ class Query(graphene.ObjectType):
     def resolve_daily_reports(self, info, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True, force_calc_flg=False):
         # filed_list = [field.values for field in fields_list_str]
         # fields_str = ', '.join(fields_list)
-        conn=None
-        if info.context:
-            conn = info.context.get('rds_conn')
+        conn = None
 
+        # checking for connextion, provided with context
+        try:
+            conn = info.context.get('rds_conn')
+        except:
+            pass
         # force_calc_flg = args.get('force_calc_flg')
         # venue_id = args.get('venue_id')
         # start_date = args.get('start_date')
