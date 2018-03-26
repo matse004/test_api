@@ -41,3 +41,5 @@ django-cors-headers
 # temp
 pandas
 sqlalchemy
+boto3
+psycopg2
