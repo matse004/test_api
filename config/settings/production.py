@@ -62,7 +62,7 @@ X_FRAME_OPTIONS = 'DENY'
 # ------------------------------------------------------------------------------
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['api.agnoris.com', ])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['api.agnoris.com', 'agnoris-test.us-east-1.elasticbeanstalk.com'])
 # END SITE CONFIGURATION
 
 INSTALLED_APPS += ['gunicorn', ]
@@ -73,7 +73,7 @@ INSTALLED_APPS += ['gunicorn', ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-# TEMPLATE CONFIGURATION
+# TEMPLATE CONFIGURATIONdb
 # ------------------------------------------------------------------------------
 # See:
 # https://docs.djangoproject.com/en/dev/ref/templates/api/#django.template.loaders.cached.Loader
@@ -89,6 +89,17 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
 # DATABASES['default'] = env.db('DATABASE_URL')
 # DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'db1',
+#         'USER': 'user1',
+#         'PASSWORD': 'pass1',
+#         'HOST': '/var/run/postgresql',
+#         # 'PORT': '6432',
+#     }
+# }
 
 
 # Your production stuff: Below this line define 3rd party library settings
