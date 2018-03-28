@@ -236,7 +236,8 @@ CORS_ORIGIN_WHITELIST = (
     'agnoris-portal.herokuapp.com',
     'portal.agnoris.com',
     'www.agnoris.com',
-    'agnoris.com'
+    'agnoris.com',
+    'agnoris-test.us-east-1.elasticbeanstalk.com'
 )
 CORS_ALLOW_METHODS = (
     'GET',
