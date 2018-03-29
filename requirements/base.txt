@@ -39,6 +39,5 @@ git+https://04252e22d18d0d9d977bf110b44b1962ba688222:x-oauth-basic@github.com/Sh
 
 
 # temp
-pandas
 sqlalchemy
 boto3
