@@ -28,6 +28,8 @@ class DailyReportMetrics(graphene.Enum):
     labor_by_emp = 'labor_by_emp repeats'
     repeats = 'repeats'
     categories = 'categories'
+    mp_stats = 'mp_stats'
+    rc_mp_items = 'rc_mp_items'
     all_fields = '*'
 
 
@@ -38,6 +40,7 @@ class DailyMetrics(graphene.ObjectType):
     checks = graphene.Int()
     sales = graphene.Float()
     avg_check = graphene.Float()
+    avg_check_per_person = graphene.Float()
 
 class DailyReport(graphene.ObjectType):
     date = graphene.String()
@@ -59,6 +62,7 @@ class DailyReport(graphene.ObjectType):
     labor_by_emp = graphene.String()
     repeats = graphene.String()
     categories = graphene.String()
+    rc_mp_items = graphene.String()
 
 def results_to_prev_days_array(results):
     reports = []
@@ -84,6 +88,7 @@ def load_list_of_daily_metrics(d):
             , covers=day.get(DailyRepFields.covers)
             , checks=day.get(DailyRepFields.checks)
             , avg_check=day.get(DailyRepFields.avg_check)
+            # , avg_check_per_person=day.get(DailyRepFields.avg_check_per_person)
         ))
     return days
 
@@ -204,6 +209,15 @@ def rds_to_daily_report(result):
     if result.get(DailyRepFields.categories):
         categories = result.get(DailyRepFields.categories)
         report.categories = categories
+
+    if result.get(DailyRepFields.mp_stats):
+        mp_stats = result.get(DailyRepFields.mp_stats)
+        report.mp_stats = mp_stats
+
+    if result.get(DailyRepFields.rc_mp_items):
+        rc_mp_items = result.get(DailyRepFields.rc_mp_items)
+        report.rc_mp_items = rc_mp_items
+
 
     return report
 
