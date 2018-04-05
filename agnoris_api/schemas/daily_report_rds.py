@@ -29,7 +29,9 @@ class DailyReportMetrics(graphene.Enum):
     repeats = 'repeats'
     categories = 'categories'
     mp_stats = 'mp_stats'
-    rc_mp_items = 'rc_mp_items'
+    ct_mp_items = 'ct_mp_items'
+    wine_stats = 'wine_stats'
+
     all_fields = '*'
 
 
@@ -62,7 +64,8 @@ class DailyReport(graphene.ObjectType):
     labor_by_emp = graphene.String()
     repeats = graphene.String()
     categories = graphene.String()
-    rc_mp_items = graphene.String()
+    ct_mp_items = graphene.String()
+    wine_stats = graphene.String()
 
 def results_to_prev_days_array(results):
     reports = []
@@ -214,9 +217,9 @@ def rds_to_daily_report(result):
         mp_stats = result.get(DailyRepFields.mp_stats)
         report.mp_stats = mp_stats
 
-    if result.get(DailyRepFields.rc_mp_items):
-        rc_mp_items = result.get(DailyRepFields.rc_mp_items)
-        report.rc_mp_items = rc_mp_items
+    if result.get(DailyRepFields.ct_mp_items):
+        ct_mp_items = result.get(DailyRepFields.ct_mp_items)
+        report.ct_mp_items = ct_mp_items
 
 
     return report
