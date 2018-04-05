@@ -4,7 +4,7 @@ from psycopg2 import pool
 import logging
 import datetime
 
-from storage.core.RDS.rds import VenueReportingDb, DailyRepFields, RdsDB
+from storage.core.RDS.rds import VenueReportingDb, SnapshotFields, RdsDB
 from storage.utilities import get_env_variable
 # from .scalars import JSONObjectString
 from tivan.analysis.analyze_rds import VenueSnapshots
@@ -33,6 +33,13 @@ class DailyReportMetrics(graphene.Enum):
     wine_stats = 'wine_stats'
 
     all_fields = '*'
+
+class ReportFrequency(graphene.Enum):
+    day = 'D'
+    week = 'W-MON'
+    week_sun = 'W'
+    month = 'M'
+    year = 'Y'
 
 
 class DailyMetrics(graphene.ObjectType):
@@ -85,141 +92,145 @@ def load_list_of_daily_metrics(d):
     days=[]
     for day in d:
         days.append(DailyMetrics(
-            start_date=day.get(DailyRepFields.start_date)
-            , end_date=day.get(DailyRepFields.end_date)
-            , sales=day.get(DailyRepFields.sales)
-            , covers=day.get(DailyRepFields.covers)
-            , checks=day.get(DailyRepFields.checks)
-            , avg_check=day.get(DailyRepFields.avg_check)
-            # , avg_check_per_person=day.get(DailyRepFields.avg_check_per_person)
+            start_date=day.get(SnapshotFields.start_date)
+            , end_date=day.get(SnapshotFields.end_date)
+            , sales=day.get(SnapshotFields.sales)
+            , covers=day.get(SnapshotFields.covers)
+            , checks=day.get(SnapshotFields.checks)
+            , avg_check=day.get(SnapshotFields.avg_check)
+            # , avg_check_per_person=day.get(SnapshotFields.avg_check_per_person)
         ))
     return days
 
 def rds_to_daily_report(result):
     report = DailyReport()
 
-    if result.get(DailyRepFields.ref_date):
-        report.date = result.get(DailyRepFields.ref_date)
+    if result.get(SnapshotFields.ref_date):
+        report.date = result.get(SnapshotFields.ref_date)
     else:
         return
 
-    if result.get(DailyRepFields.prev_days):
-        prev_days = json.loads(result.get(DailyRepFields.prev_days))
+    if result.get(SnapshotFields.prev_days):
+        prev_days = json.loads(result.get(SnapshotFields.prev_days))
         prev_days = load_list_of_daily_metrics(prev_days)
         report.prev_days = prev_days
 
-    if result.get(DailyRepFields.prev_days_avg):
-        avg = json.loads(result.get(DailyRepFields.prev_days_avg))
+    if result.get(SnapshotFields.prev_days_avg):
+        avg = json.loads(result.get(SnapshotFields.prev_days_avg))
         prev_days_avg = DailyMetrics(
-            start_date=avg.get(DailyRepFields.start_date)
-            , end_date=avg.get(DailyRepFields.end_date)
-            , sales=avg.get(DailyRepFields.sales)
-            , covers=avg.get(DailyRepFields.covers)
-            , checks=avg.get(DailyRepFields.checks)
-            , avg_check=avg.get(DailyRepFields.avg_check)
+            start_date=avg.get(SnapshotFields.start_date)
+            , end_date=avg.get(SnapshotFields.end_date)
+            , sales=avg.get(SnapshotFields.sales)
+            , covers=avg.get(SnapshotFields.covers)
+            , checks=avg.get(SnapshotFields.checks)
+            , avg_check=avg.get(SnapshotFields.avg_check)
         )
         report.prev_days_avg = prev_days_avg
 
-    if result.get(DailyRepFields.same_days):
-        same_days = json.loads(result.get(DailyRepFields.same_days))
+    if result.get(SnapshotFields.same_days):
+        same_days = json.loads(result.get(SnapshotFields.same_days))
         same_days = load_list_of_daily_metrics(same_days)
         report.same_days = same_days
 
-    if result.get(DailyRepFields.same_days_avg):
-        avg = json.loads(result.get(DailyRepFields.same_days_avg))
+    if result.get(SnapshotFields.same_days_avg):
+        avg = json.loads(result.get(SnapshotFields.same_days_avg))
         same_days_avg = DailyMetrics(
-            start_date=avg.get(DailyRepFields.start_date)
-            , end_date=avg.get(DailyRepFields.end_date)
-            , sales=avg.get(DailyRepFields.sales)
-            , covers=avg.get(DailyRepFields.covers)
-            , checks=avg.get(DailyRepFields.checks)
-            , avg_check=avg.get(DailyRepFields.avg_check)
+            start_date=avg.get(SnapshotFields.start_date)
+            , end_date=avg.get(SnapshotFields.end_date)
+            , sales=avg.get(SnapshotFields.sales)
+            , covers=avg.get(SnapshotFields.covers)
+            , checks=avg.get(SnapshotFields.checks)
+            , avg_check=avg.get(SnapshotFields.avg_check)
         )
         report.same_days_avg = same_days_avg
 
-    if result.get(DailyRepFields.WTD):
-        WTD = json.loads(result.get(DailyRepFields.WTD))
+    if result.get(SnapshotFields.WTD):
+        WTD = json.loads(result.get(SnapshotFields.WTD))
         WTD = DailyMetrics(
-            start_date=WTD.get(DailyRepFields.start_date)
-            , end_date=WTD.get(DailyRepFields.end_date)
-            , sales=WTD.get(DailyRepFields.sales)
-            , covers=WTD.get(DailyRepFields.covers)
-            , checks=WTD.get(DailyRepFields.checks)
-            , avg_check=WTD.get(DailyRepFields.avg_check)
+            start_date=WTD.get(SnapshotFields.start_date)
+            , end_date=WTD.get(SnapshotFields.end_date)
+            , sales=WTD.get(SnapshotFields.sales)
+            , covers=WTD.get(SnapshotFields.covers)
+            , checks=WTD.get(SnapshotFields.checks)
+            , avg_check=WTD.get(SnapshotFields.avg_check)
         )
         report.WTD = WTD
 
-    if result.get(DailyRepFields.MTD):
-        MTD = json.loads(result.get(DailyRepFields.MTD))
+    if result.get(SnapshotFields.MTD):
+        MTD = json.loads(result.get(SnapshotFields.MTD))
         MTD = DailyMetrics(
-            start_date=MTD.get(DailyRepFields.start_date)
-            , end_date=MTD.get(DailyRepFields.end_date)
-            , sales=MTD.get(DailyRepFields.sales)
-            , covers=MTD.get(DailyRepFields.covers)
-            , checks=MTD.get(DailyRepFields.checks)
-            , avg_check=MTD.get(DailyRepFields.avg_check)
+            start_date=MTD.get(SnapshotFields.start_date)
+            , end_date=MTD.get(SnapshotFields.end_date)
+            , sales=MTD.get(SnapshotFields.sales)
+            , covers=MTD.get(SnapshotFields.covers)
+            , checks=MTD.get(SnapshotFields.checks)
+            , avg_check=MTD.get(SnapshotFields.avg_check)
         )
         report.MTD = MTD
 
-    if result.get(DailyRepFields.YTD):
-        YTD = json.loads(result.get(DailyRepFields.YTD))
+    if result.get(SnapshotFields.YTD):
+        YTD = json.loads(result.get(SnapshotFields.YTD))
         YTD = DailyMetrics(
-            start_date=YTD.get(DailyRepFields.start_date)
-            , end_date=YTD.get(DailyRepFields.end_date)
-            , sales=YTD.get(DailyRepFields.sales)
-            , covers=YTD.get(DailyRepFields.covers)
-            , checks=YTD.get(DailyRepFields.checks)
-            , avg_check=YTD.get(DailyRepFields.avg_check)
+            start_date=YTD.get(SnapshotFields.start_date)
+            , end_date=YTD.get(SnapshotFields.end_date)
+            , sales=YTD.get(SnapshotFields.sales)
+            , covers=YTD.get(SnapshotFields.covers)
+            , checks=YTD.get(SnapshotFields.checks)
+            , avg_check=YTD.get(SnapshotFields.avg_check)
         )
         report.YTD = YTD
 
-    if result.get(DailyRepFields.party_size_grp):
-        party_siz_grp = result.get(DailyRepFields.party_size_grp)
+    if result.get(SnapshotFields.party_size_grp):
+        party_siz_grp = result.get(SnapshotFields.party_size_grp)
         report.party_size_grp = party_siz_grp
 
-    if result.get(DailyRepFields.mp_rc_grp):
-        mp_rc_grp = result.get(DailyRepFields.mp_rc_grp)
+    if result.get(SnapshotFields.mp_rc_grp):
+        mp_rc_grp = result.get(SnapshotFields.mp_rc_grp)
         report.mp_rc_grp = mp_rc_grp
 
-    if result.get(DailyRepFields.rc_mp_grp):
-        rc_mp_grp = result.get(DailyRepFields.rc_mp_grp)
+    if result.get(SnapshotFields.rc_mp_grp):
+        rc_mp_grp = result.get(SnapshotFields.rc_mp_grp)
         report.rc_mp_grp = rc_mp_grp
 
-    if result.get(DailyRepFields.top_items):
-        top_items = result.get(DailyRepFields.top_items)
+    if result.get(SnapshotFields.top_items):
+        top_items = result.get(SnapshotFields.top_items)
         report.top_items = top_items
 
-    if result.get(DailyRepFields.top_items_by_party):
-        top_items_by_party = result.get(DailyRepFields.top_items_by_party)
+    if result.get(SnapshotFields.top_items_by_party):
+        top_items_by_party = result.get(SnapshotFields.top_items_by_party)
         report.top_items_by_party = top_items_by_party
 
-    if result.get(DailyRepFields.top_items_pop):
-        top_items_pop = result.get(DailyRepFields.top_items_pop)
+    if result.get(SnapshotFields.top_items_pop):
+        top_items_pop = result.get(SnapshotFields.top_items_pop)
         report.top_items_pop = top_items_pop
 
-    if result.get(DailyRepFields.labor_by_mp):
-        labor_by_mp = result.get(DailyRepFields.labor_by_mp)
+    if result.get(SnapshotFields.labor_by_mp):
+        labor_by_mp = result.get(SnapshotFields.labor_by_mp)
         report.labor_by_mp = labor_by_mp
 
-    if result.get(DailyRepFields.labor_by_emp):
-        labor_by_emp = result.get(DailyRepFields.labor_by_emp)
+    if result.get(SnapshotFields.labor_by_emp):
+        labor_by_emp = result.get(SnapshotFields.labor_by_emp)
         report.labor_by_emp = labor_by_emp
 
-    if result.get(DailyRepFields.repeats):
-        repeats = result.get(DailyRepFields.repeats)
+    if result.get(SnapshotFields.repeats):
+        repeats = result.get(SnapshotFields.repeats)
         report.repeats = repeats
 
-    if result.get(DailyRepFields.categories):
-        categories = result.get(DailyRepFields.categories)
+    if result.get(SnapshotFields.categories):
+        categories = result.get(SnapshotFields.categories)
         report.categories = categories
 
-    if result.get(DailyRepFields.mp_stats):
-        mp_stats = result.get(DailyRepFields.mp_stats)
+    if result.get(SnapshotFields.mp_stats):
+        mp_stats = result.get(SnapshotFields.mp_stats)
         report.mp_stats = mp_stats
 
-    if result.get(DailyRepFields.ct_mp_items):
-        ct_mp_items = result.get(DailyRepFields.ct_mp_items)
+    if result.get(SnapshotFields.ct_mp_items):
+        ct_mp_items = result.get(SnapshotFields.ct_mp_items)
         report.ct_mp_items = ct_mp_items
+
+    if result.get(SnapshotFields.wine_stats):
+        wine_stats = result.get(SnapshotFields.wine_stats)
+        report.wine_stats = wine_stats
 
 
     return report
@@ -232,19 +243,21 @@ arguments = {
     "ref_date": graphene.String(),
     "fields_list": graphene.List(DailyReportMetrics),
     "force_calc_flg": graphene.Boolean(),
-    "calc_new_flg": graphene.Boolean()
+    "calc_new_flg": graphene.Boolean(),
+    "freq": ReportFrequency()
 }
 
 
 class Query(graphene.ObjectType):
     daily_reports = graphene.List(DailyReport, **arguments)
 
-    def resolve_daily_reports(self, info, start_date, end_date, venue_id, fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True, force_calc_flg=False):
+    def resolve_daily_reports(self, info, start_date, end_date, venue_id,
+                              fields_list=[DailyReportMetrics.all_fields.value], calc_new_flg=True,
+                              force_calc_flg=False, freq=ReportFrequency.day.value):
         # filed_list = [field.values for field in fields_list_str]
         # fields_str = ', '.join(fields_list)
         conn = None
-
-        # checking for connextion, provided with context
+        # checking for connection, provided with context
         try:
             conn = info.context.get('rds_conn')
         except:
@@ -257,14 +270,14 @@ class Query(graphene.ObjectType):
         # calc_new_flg = args.get('calc_new_flg')
 
         if force_calc_flg:
-            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
+            reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
         else:
-            reports = VenueReportingDb(venue_id, conn=conn).retrieve_report_data(start_date, end_date, fields_list=fields_list)
+            reports = VenueReportingDb(venue_id, conn=conn).retrieve_report_data(start_date, end_date, fields_list=fields_list, freq=freq)
 
         # if no data in rds - try to calculate
         # TODO: add field list
         if not reports and calc_new_flg:
-            reports = VenueSnapshots(venue_id).save_stats_by_date(start_date, end_date, metrics_list=fields_list)
+            reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
 
         if reports:
             return results_to_daily_reports_array(reports)
@@ -302,7 +315,7 @@ class RdsPool():
 
 
 if __name__ == '__main__':
-    ts =  datetime.datetime.now()
+    ts = datetime.datetime.now()
     rds = RdsPool()
     te = datetime.datetime.now()
     print("pooling: {}".format(te-ts))
