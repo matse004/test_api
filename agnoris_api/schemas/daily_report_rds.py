@@ -4,7 +4,7 @@ from psycopg2 import pool
 import logging
 import datetime
 
-from storage.core.RDS.rds import VenueReportingDb, SnapshotFields
+from storage.core.RDS.rds import VenueReportingDb, SnapshotFields, RdsDB
 from storage.utilities import get_env_variable
 # from .scalars import JSONObjectString
 # from tivan.analysis.analyze_rds import VenueSnapshots
