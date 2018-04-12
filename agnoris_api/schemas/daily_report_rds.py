@@ -4,10 +4,10 @@ from psycopg2 import pool
 import logging
 import datetime
 
-from storage.core.RDS.rds import VenueReportingDb, SnapshotFields, RdsDB
+from storage.core.RDS.rds import VenueReportingDb, SnapshotFields
 from storage.utilities import get_env_variable
 # from .scalars import JSONObjectString
-from tivan.analysis.analyze_rds import VenueSnapshots
+# from tivan.analysis.analyze_rds import VenueSnapshots
 
 class DailyReportMetrics(graphene.Enum):
     ref_date = 'ref_date'
@@ -270,14 +270,15 @@ class Query(graphene.ObjectType):
         # calc_new_flg = args.get('calc_new_flg')
 
         if force_calc_flg:
-            reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
+            pass
+            # reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
         else:
             reports = VenueReportingDb(venue_id, conn=conn).retrieve_report_data(start_date, end_date, fields_list=fields_list, freq=freq)
 
         # if no data in rds - try to calculate
         # TODO: add field list
-        if not reports and calc_new_flg:
-            reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
+        # if not reports and calc_new_flg:
+        #     reports = VenueSnapshots(venue_id, local_run=False).save_stats_by_date(start_date, end_date, metrics_list=fields_list, freq=freq)
 
         if reports:
             return results_to_daily_reports_array(reports)
